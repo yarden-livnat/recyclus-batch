@@ -14,7 +14,7 @@ def create(req):
         'id': id,
         'scenario': req['scenario'],
         'user': req['user'],
-        'name': req['name'],
+        'name': req.get('name', 'default'),
         'status': 'pending'
     }
     cache.hmset(id, job)
