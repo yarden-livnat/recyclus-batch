@@ -1,8 +1,8 @@
 from flask import Blueprint
 from flask_restplus import Api, Resource
-from webargs.flaskparser import use_args, use_kwargs
+from webargs.flaskparser import use_args
 
-from .schema import RunSchema, CancelSchema, StatusSchema
+from .schema import run_args
 from . import jobs
 
 blueprint = Blueprint('api', __name__)
@@ -16,28 +16,27 @@ api = Api(blueprint,
 
 @api.route('/run')
 class Run(Resource):
-    @use_kwargs(RunSchema())
-    def post(self, token, **kwargs):
-        print('run: ', token, kwargs)
-        return jobs.create(kwargs)
-        # return 'ok'
+    @use_args(run_args)
+    def post(self, args):
+        identity = args.pop('identity')
+        if args.get('user') is None:
+            args['user'] = identity['user']
+        return jobs.create(args)
 
 
 @api.route('/cancel/<jobid>')
 # @use_kwargs(CancelSchema())
 class Cancel(Resource):
 
-    @use_kwargs(CancelSchema())
+    # @use_kwargs(CancelSchema())
     def delete(self):
         return 'ok'
 
 
 @api.route('/status/<jobid>')
-# @use_kwargs(StatusSchema())
 class Status(Resource):
 
     # @use_kwargs(StatusSchema())
     def get(self, jobid):
-        print('status of', jobid)
-        return 'ok'
+        return jobs.status(jobid)
 

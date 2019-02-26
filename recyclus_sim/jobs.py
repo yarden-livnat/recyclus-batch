@@ -1,27 +1,55 @@
 import os
 from redis import Redis
 
-cache = Redis(host='redis', db=0, socket_connect_timeout=2, socket_timeout=2)
+cache = Redis(host='redis', db=0, decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
 
 
-def next_jobid():
-    return f"job:{cache.incr('job_counter')}"
+def create_jobid(user, name):
+    counter = f'counter:{user}:{name}'
+    n = cache.incr(counter)
+    return f'{user}:{name}-{n}'
+
+
+def job_key(jobid):
+    return f'job:{jobid}'
 
 
 def create(req):
-    id = next_jobid()
+    user = req['user']
+    name = req['name']
+    jobid = create_jobid(user, name)
+    key = job_key(jobid)
+
     job = {
-        'id': id,
-        'scenario': req['scenario'],
-        'user': req['user'],
-        'name': req.get('name', 'default'),
+        'jobid': jobid,
+        'key': key,
+        'user': user,
+        'name': name,
         'status': 'pending'
     }
-    cache.hmset(id, job)
-    cache.lpush('q:submit', job['id'])
+    cache.hmset(key, job)
+    cache.hmset(f'{key}:sim', req['sim'])
+
+    cache.lpush('q:submit', key)
+
     return job
 
 
-def status(req):
-    return cache.hmget(req['jobid'], 'status')
+def status(jobid):
+    key = job_key(jobid)
+    if cache.exists(key):
+        info = {
+            'status': 'ok',
+            'jobid': jobid,
+            'job_status': cache.hget(key, 'status')
+        }
+        if info['job_status'] == 'failed':
+            info['error'] = cache.hget(key, 'error')
+        return info
+    else:
+        return {
+            'status': 'fail',
+            'jobid': jobid,
+            'message': 'unknown job'
+        }
 

@@ -1,32 +1,18 @@
-from marshmallow import Schema, fields
+from webargs import fields
 
+identity_args = {
+    'user': fields.Str(required=True),
+    'roles': fields.Str(required=True)
+}
 
-class TokenSchema(Schema):
-    claims = fields.Str()
-    class Meta:
-        strict = True
+sim_args = {
+    'scenario': fields.Str(required=True),
+    'format': fields.Str(missing='sqlite')
+}
 
-
-class RunSchema(Schema):
-    token = fields.Nested(TokenSchema)
-    scenario = fields.Str()
-    user = fields.Str()
-    name = fields.Str(required=False)
-    format = fields.Str(default='.sqlite', required=False)
-    class Meta:
-        strict = True
-
-
-class CancelSchema(Schema):
-    token = fields.Nested(TokenSchema)
-    jobid = fields.Str()
-    class Meta:
-        strict = True
-
-    
-class StatusSchema(Schema):
-    token = fields.Nested(TokenSchema)
-    jobid = fields.Str()
-    class Meta:
-        strict = True
-
+run_args = {
+    'identity': fields.Nested(identity_args, required=True),
+    'user': fields.Str(),
+    'name': fields.Str(missing='default'),
+    'sim': fields.Nested(sim_args, required=True)
+}
