@@ -39,17 +39,15 @@ def status(jobid):
     key = job_key(jobid)
     if cache.exists(key):
         info = {
-            'status': 'ok',
             'jobid': jobid,
-            'job_status': cache.hget(key, 'status')
+            'status': cache.hget(key, 'status')
         }
         if info['job_status'] == 'failed':
             info['error'] = cache.hget(key, 'error')
         return info
     else:
         return {
-            'status': 'fail',
             'jobid': jobid,
-            'message': 'unknown job'
+            'status': 'unknown job'
         }
 
