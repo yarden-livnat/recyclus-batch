@@ -7,6 +7,7 @@ identity_args = {
 
 sim_args = {
     'scenario': fields.Str(required=True),
+    'scenario_filename': fields.Str(),
     'format': fields.Str(missing='sqlite')
 }
 
@@ -14,5 +15,5 @@ run_args = {
     'identity': fields.Nested(identity_args, required=True),
     'user': fields.Str(),
     'name': fields.Str(missing='default'),
-    'sim': fields.Nested(sim_args, required=True)
+    'simulation': fields.Nested(sim_args, required=True)
 }

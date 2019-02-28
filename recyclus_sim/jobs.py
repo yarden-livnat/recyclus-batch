@@ -1,4 +1,3 @@
-import os
 from redis import Redis
 
 cache = Redis(host='redis', db=0, decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
@@ -28,7 +27,7 @@ def create(req):
         'status': 'pending'
     }
     cache.hmset(key, job)
-    cache.hmset(f'{key}:sim', req['sim'])
+    cache.hmset(f'{key}:sim', req['simulation'])
 
     cache.lpush('q:submit', key)
 
@@ -42,7 +41,7 @@ def status(jobid):
             'jobid': jobid,
             'status': cache.hget(key, 'status')
         }
-        if info['job_status'] == 'failed':
+        if info['status'] == 'failed':
             info['error'] = cache.hget(key, 'error')
         return info
     else:

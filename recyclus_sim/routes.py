@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 from flask_restplus import Api, Resource
 from webargs.flaskparser import use_args
 
