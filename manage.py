@@ -5,7 +5,7 @@ import os
 # from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 
-from recyclus_sim import create_app
+from recyclus_batch import create_app
 
 app = create_app(os.getenv('FLASK_ENV') or 'development')
 
