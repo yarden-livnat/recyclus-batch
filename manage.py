@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import os
 # import unittest
-
-# from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 
 from recyclus_batch import create_app
@@ -13,9 +11,6 @@ app = create_app(os.getenv('FLASK_ENV') or 'development')
 
 manager = Manager(app)
 
-# migrate = Migrate(app, db)
-
-# manager.add_command('db', MigrateCommand)
 
 @manager.command
 def run():
