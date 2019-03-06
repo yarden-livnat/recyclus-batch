@@ -17,3 +17,8 @@ run_args = {
     'name': fields.Str(missing='default'),
     'simulation': fields.Nested(sim_args, required=True)
 }
+
+
+cancel_args = {
+    'identity': fields.Nested(identity_args, required=True)
+}

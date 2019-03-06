@@ -1,8 +1,8 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app as app
 from flask_restplus import Api, Resource
 from webargs.flaskparser import use_args
 
-from .schema import run_args
+from .schema import run_args, cancel_args
 from . import jobs
 
 blueprint = Blueprint('api', __name__)
@@ -25,12 +25,11 @@ class Run(Resource):
 
 
 @api.route('/cancel/<jobid>')
-# @use_kwargs(CancelSchema())
 class Cancel(Resource):
 
-    # @use_kwargs(CancelSchema())
-    def delete(self):
-        return 'ok'
+    @use_args(cancel_args)
+    def delete(self, args, jobid):
+        return jobs.cancel(jobid, args['identity']['user'])
 
 
 @api.route('/status/<jobid>')
