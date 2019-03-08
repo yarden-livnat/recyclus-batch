@@ -1,8 +1,10 @@
+import json
 from redis import Redis
 from flask import current_app as app
 
+from .exceptions import BatchException
+
 cache = Redis(host='redis', db=0, decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
-pubsub = cache.pubsub()
 
 
 def create_jobid(user, name):
@@ -15,9 +17,7 @@ def job_key(jobid):
     return f'job:{jobid}'
 
 
-def create(req):
-    user = req['user']
-    name = req['name']
+def create(req, user, name, tasks):
     jobid = create_jobid(user, name)
     key = job_key(jobid)
 
@@ -26,12 +26,13 @@ def create(req):
         'key': key,
         'user': user,
         'name': name,
-        'status': 'pending'
+        'status': 'pending',
+        'tasks': json.dumps(tasks),
+        'logid': f'{key}:log'
     }
     cache.hmset(key, job)
-    cache.hmset(f'{key}:sim', req['simulation'])
-
     cache.lpush('q:submit', key)
+    app.logger.debug('job created')
     return job
 
 
@@ -39,42 +40,59 @@ def status(jobid):
     key = job_key(jobid)
     if cache.exists(key):
         info = {
-            'jobid': jobid,
             'status': cache.hget(key, 'status')
         }
-        if info['status'] == 'failed':
-            info['error'] = cache.hget(key, 'error')
+
+        record = cache.hgetall(f'{key}:status:simulation')
+        if record:
+            info['simulation'] = record
+
+        record = cache.hgetall(f'{key}:status:post')
+        if record:
+            info['post'] = record
+
         return info
     else:
-        return {
-            'jobid': jobid,
-            'status': 'unknown job'
-        }
+        raise BatchException(f'unknown job {jobid}')
 
 
 def cancel(jobid, user):
     key = job_key(jobid)
     if cache.exists(key):
         if cache.hget(key, 'user') != user:
-            return {'message': f'no such job for user:{user}'}
+            raise BatchException(f'no such job for user:{user}')
 
-        status = cache.hget(key, 'status')
+        # todo: race condition
+        job_status = cache.hget(key, 'status')
 
-        if status == 'pending':
+        if job_status == 'pending':
             r = cache.lren('q:submit', -1, key)
             app.logger.debug('remove=', r)
             cache.delete(key)
-            return {'message': 'canceled'}
+            return 'canceled'
 
-        if status.startswith('running'):
+        if job_status.startswith('running'):
             cache.hset(key, 'ctrl', 'cancel')
-            # cache.publish('cancel-job', jobid)
-            app.logger.debug('published cancel job %s', jobid)
             return 'cancel scheduled'
 
-        return {'message': f'job "{jobid}" is not running'}
+        BatchException(f'job "{jobid}" is not running')
     else:
-        return {
-            'jobid': jobid,
-            'status': 'unknown job'
-        }
+        BatchException('unknown job')
+
+
+def delete(jobid, user):
+    key = job_key(jobid)
+    if cache.exists(key):
+        if cache.hget(key, 'user') != user:
+            BatchException(f'no such job for user:{user}')
+
+        job_status = cache.hget(key, 'status')
+        if job_status not in ['done', 'failed', 'canceled']:
+            BatchException('can not delete a running job')
+
+        keys = cache.keys(f'{key}:*') or []
+        app.logger.debug('delete keys: %s', str(keys))
+        keys.append(key)
+        cache.delete(*keys)
+
+

@@ -8,17 +8,33 @@ identity_args = {
 sim_args = {
     'scenario': fields.Str(required=True),
     'scenario_filename': fields.Str(),
-    'format': fields.Str(missing='sqlite')
+    'format': fields.Str(missing='sqlite'),
+    'files': fields.List(fields.Str())
+}
+
+post_args = {
+    'script': fields.Str(required=True),
+    'scenario_filename': fields.Str(),
+    'files': fields.List(fields.Str())
+}
+
+tasks_args = {
+    'simulation': fields.Nested(sim_args, required=True),
+    'post': fields.Nested(post_args)
 }
 
 run_args = {
     'identity': fields.Nested(identity_args, required=True),
     'user': fields.Str(),
     'name': fields.Str(missing='default'),
-    'simulation': fields.Nested(sim_args, required=True)
+    'tasks': fields.Nested(tasks_args, required=True)
 }
 
 
 cancel_args = {
+    'identity': fields.Nested(identity_args, required=True)
+}
+
+delete_args = {
     'identity': fields.Nested(identity_args, required=True)
 }
