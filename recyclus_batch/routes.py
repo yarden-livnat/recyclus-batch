@@ -25,10 +25,11 @@ class Run(Resource):
         identity = args.pop('identity')
         if args.get('user') is None:
             args['user'] = identity['user']
-        job = jobs.create(args['user'], args['name'], args['tasks'])
+        job = jobs.create(args['user'], args['project'], args['tasks'])
+        jobs.schedule(job)
         return {
             'jobid': job['jobid'],
-            'name': job['name']
+            'project': job['project']
         }
 
 

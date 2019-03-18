@@ -3,6 +3,9 @@ user ?= ylivnat
 
 all : clean push
 
+status:
+	git status
+
 build:
 	docker build -t $(user)/$(name) .
 

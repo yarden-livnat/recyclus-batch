@@ -26,7 +26,7 @@ tasks_args = {
 run_args = {
     'identity': fields.Nested(identity_args, required=True),
     'user': fields.Str(),
-    'name': fields.Str(missing='default'),
+    'project': fields.Str(missing='default'),
     'tasks': fields.Nested(tasks_args, required=True)
 }
 
