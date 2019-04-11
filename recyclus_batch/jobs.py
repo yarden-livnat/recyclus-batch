@@ -98,5 +98,7 @@ def delete(jobid, user):
         app.logger.debug('delete keys: %s', str(keys))
         keys.append(key)
         cache.delete(*keys)
+    else:
+        BatchException(f'unknown job {jobid}')
 
 
