@@ -15,4 +15,4 @@ push: build
 
 
 clean:
-	docker image rm $(user)/$(name)
+	docker image rm -f $(user)/$(name)
