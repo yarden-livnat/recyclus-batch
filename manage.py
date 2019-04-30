@@ -5,7 +5,7 @@ from flask_script import Manager
 
 from recyclus_batch import create_app
 
-app = create_app(os.getenv('FLASK_ENV') or 'development')
+app = create_app(os.getenv('FLASK_ENV') or 'production')
 
 # app.app_context().push()
 

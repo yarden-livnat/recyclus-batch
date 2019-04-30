@@ -3,8 +3,6 @@ from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
 
 from .config import config_by_name
-# from .db import db
-# from .api import blueprint
 from .routes import blueprint
 
 
@@ -19,12 +17,10 @@ def create_app(config_name='development'):
     app.config.from_envvar('APP_CONFIG_FILE', silent=True)
 
     # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+    # try:
+    #     os.makedirs(app.instance_path)
+    # except OSError:
+    #     pass
 
     app.register_blueprint(blueprint, url_prefix='/api')
-
-    print(f'**** recyclus_sim [{config_name}] created')
     return app

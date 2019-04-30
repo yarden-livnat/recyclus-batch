@@ -6,7 +6,6 @@ db_dir = Path('.').parent.resolve()
 
 class Config(object):
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis"
-
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
