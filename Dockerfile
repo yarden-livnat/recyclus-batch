@@ -8,7 +8,8 @@ RUN pip install -U pip \
 COPY . /code
 WORKDIR /code
 
-CMD ./manage.py run
+#ENTRYPOINT ["./scripts/entrypoint.sh"]
+CMD ["./manage.py", "run"]
 
 EXPOSE 5010
 
